@@ -4,15 +4,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message } = req.body;
+    const { message, liveData } = req.body;
 
     if (!message) {
-      return res.status(400).json({ error: "Message content cannot be blank" });
+      return res.status(400).json({ error: "Context string required" });
     }
 
     const API_KEY = process.env.GEMINI_API_KEY;
-    if (!API_KEY) {
-      return res.status(500).json({ error: "API Key Configuration Missing" });
+    
+    // Injecting live metrics data safely as an assistant context profile
+    let contextualSystemPrompt = "You are an intelligent automated agricultural asset manager for Smart Farm. ";
+    if (liveData) {
+      contextualSystemPrompt += `Current system telemetry points right now are: 
+      - Temperature: ${liveData.temp}°C
+      - Relative Humidity: ${liveData.humidity}%
+      - Current Soil Moisture content: ${liveData.soil}%
+      - Light Intensity: ${liveData.light}%. 
+      Incorporate these values precisely if the operator asks about current status or diagnostic summaries. Keep statements succinct.`;
     }
 
     const response = await fetch(
@@ -25,26 +33,22 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           contents: [
             {
-              parts: [{ text: message }]
+              role: "user",
+              parts: [{ text: `${contextualSystemPrompt}\n\nOperator Question: ${message}` }]
             }
           ]
         })
       }
     );
 
-    if (!response.ok) {
-      const errData = await response.json();
-      return res.status(response.status).json({ error: errData.error?.message || "Gemini Remote Error" });
-    }
-
     const data = await response.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No active context returned.";
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response trace recovered.";
 
     res.status(200).json({ reply });
 
   } catch (error) {
     res.status(500).json({
-      error: "Internal Server Middleware Error",
+      error: "Server connection failure",
       details: error.message
     });
   }
