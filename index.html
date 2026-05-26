@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Farm Dashboard</title>
+<title>Smart Farm Dashboard - Live</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -205,6 +205,7 @@ body {
 .fill {
   height: 100%;
   border-radius: 10px;
+  transition: width 0.5s ease-in-out;
 }
 .card.temp .fill { background: #4caf50; }
 .card.humidity .fill { background: #1e88e5; }
@@ -393,7 +394,7 @@ body {
   background: white;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  display: none; /* Controlled via state toggle script */
+  display: none;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--border-color);
@@ -472,32 +473,14 @@ body {
     SMART <span>// FARM</span>
   </div>
   <div class="menu">
-    <span class="active">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-      Dashboard
-    </span>
-    <span>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-      Zones
-    </span>
-    <span>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-      Alerts
-    </span>
-    <span>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-      Reports
-    </span>
-    <span>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-      AI Assistant
-    </span>
+    <span class="active">Dashboard</span>
+    <span>Zones</span>
+    <span>Alerts</span>
+    <span>Reports</span>
+    <span>AI Assistant</span>
   </div>
   <div class="nav-right">
-    ☀️ 24°C
-    <div class="profile-icon">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-    </div>
+    ☀️ <span id="nav-temp">24.0</span>°C
   </div>
 </div>
 
@@ -506,8 +489,8 @@ body {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 11.08 12 19 7.05 14.05"></polyline><path d="M22 4L12 14.01 9 11.01"></path></svg>
   </div>
   <div>
-    <span class="title">System Healthy</span>
-    <span class="desc">All systems are operating within normal parameters.</span>
+    <span class="title" id="system-status-title">System Healthy</span>
+    <span class="desc" id="system-status-desc">All systems are operating within normal parameters.</span>
   </div>
 </div>
 
@@ -515,62 +498,42 @@ body {
   
   <div class="metrics-grid">
     <div class="card temp">
-      <div class="card-header">
-        <div class="icon-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
-        </div>
-        Temperature
-      </div>
-      <div class="value-display">23.4<span>°C</span></div>
+      <div class="card-header">Temperature</div>
+      <div class="value-display"><span id="val-temp">23.4</span><span>°C</span></div>
       <div class="ideal-range">Ideal Range: 18°C - 30°C</div>
       <div class="progress-container">
-        <div class="bar"><div class="fill" style="width: 52%"></div></div>
-        <div class="percentage-label">52%</div>
+        <div class="bar"><div id="progress-temp" class="fill" style="width: 52%"></div></div>
+        <div id="lbl-temp" class="percentage-label">52%</div>
       </div>
     </div>
 
     <div class="card humidity">
-      <div class="card-header">
-        <div class="icon-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
-        </div>
-        Humidity
-      </div>
-      <div class="value-display">56.7<span>%</span></div>
+      <div class="card-header">Humidity</div>
+      <div class="value-display"><span id="val-humidity">56.7</span><span>%</span></div>
       <div class="ideal-range">Ideal Range: 40% - 70%</div>
       <div class="progress-container">
-        <div class="bar"><div class="fill" style="width: 56%"></div></div>
-        <div class="percentage-label">56%</div>
+        <div class="bar"><div id="progress-humidity" class="fill" style="width: 56%"></div></div>
+        <div id="lbl-humidity" class="percentage-label">56%</div>
       </div>
     </div>
 
     <div class="card soil">
-      <div class="card-header">
-        <div class="icon-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M12 6v6l4 2"></path></svg>
-        </div>
-        Soil Moisture
-      </div>
-      <div class="value-display">42.3<span>%</span></div>
+      <div class="card-header">Soil Moisture</div>
+      <div class="value-display"><span id="val-soil">42.3</span><span>%</span></div>
       <div class="ideal-range">Ideal Range: 30% - 60%</div>
       <div class="progress-container">
-        <div class="bar"><div class="fill" style="width: 42%"></div></div>
-        <div class="percentage-label">42%</div>
+        <div class="bar"><div id="progress-soil" class="fill" style="width: 42%"></div></div>
+        <div id="lbl-soil" class="percentage-label">42%</div>
       </div>
     </div>
 
     <div class="card light">
-      <div class="card-header">
-        <div class="icon-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-        </div>
-        Light Intensity
-      </div>
-      <div class="value-display">68.9<span>%</span></div>
+      <div class="card-header">Light Intensity</div>
+      <div class="value-display"><span id="val-light">68.9</span><span>%</span></div>
       <div class="ideal-range">Ideal Range: 40% - 80%</div>
       <div class="progress-container">
-        <div class="bar"><div class="fill" style="width: 68%"></div></div>
-        <div class="percentage-label">68%</div>
+        <div class="bar"><div id="progress-light" class="fill" style="width: 68%"></div></div>
+        <div id="lbl-light" class="percentage-label">68%</div>
       </div>
     </div>
   </div>
@@ -580,12 +543,7 @@ body {
       <div class="panel-title-area">
         <div>
           <h3>Trends Overview</h3>
-          <div class="panel-subtitle">Temperature (°C) - Last 20 Readings</div>
-        </div>
-        <div class="toggle-filter">
-          <span>1D</span>
-          <span>1W</span>
-          <span class="active">1M</span>
+          <div class="panel-subtitle">Temperature Live Stream Tracking</div>
         </div>
       </div>
       
@@ -595,30 +553,26 @@ body {
 
       <div class="chart-summary-row">
         <div class="summary-item">
-          <div class="icon">🌡️</div>
           <div class="summary-content">
-            <span class="summary-val">22.6°C</span>
+            <span class="summary-val" id="avg-temp">22.6°C</span>
             <span class="summary-lbl">Average Temperature</span>
           </div>
         </div>
         <div class="summary-item">
-          <div class="icon">💧</div>
           <div class="summary-content">
-            <span class="summary-val">54.1%</span>
+            <span class="summary-val" id="avg-humidity">54.1%</span>
             <span class="summary-lbl">Average Humidity</span>
           </div>
         </div>
         <div class="summary-item">
-          <div class="icon">🌱</div>
           <div class="summary-content">
-            <span class="summary-val">41.8%</span>
+            <span class="summary-val" id="avg-soil">41.8%</span>
             <span class="summary-lbl">Average Soil Moisture</span>
           </div>
         </div>
         <div class="summary-item">
-          <div class="icon">☀️</div>
           <div class="summary-content">
-            <span class="summary-val">67.3%</span>
+            <span class="summary-val" id="avg-light">67.3%</span>
             <span class="summary-lbl">Average Light Intensity</span>
           </div>
         </div>
@@ -627,78 +581,66 @@ body {
 
     <div class="panel">
       <div class="panel-title-area">
-        <h3>Recent Alerts</h3>
-        <span style="color:var(--accent-green); font-size:0.8rem; font-weight:600; cursor:pointer;">View All</span>
+        <h3>Recent Alerts Log</h3>
       </div>
-      
-      <div class="alert-list">
-        <div class="alert-item warning">
-          <div class="alert-icon">⚠️</div>
-          <div class="alert-details">
-            <span class="alert-msg">Soil moisture is below ideal range</span>
-            <span class="alert-meta">Zone A • 10:24 AM</span>
-          </div>
-        </div>
+      <div class="alert-list" id="alert-box">
         <div class="alert-item success">
           <div class="alert-icon">✅</div>
           <div class="alert-details">
-            <span class="alert-msg">Irrigation completed</span>
-            <span class="alert-meta">Zone B • 08:15 AM</span>
-          </div>
-        </div>
-        <div class="alert-item warning">
-          <div class="alert-icon">⚠️</div>
-          <div class="alert-details">
-            <span class="alert-msg">High temperature detected</span>
-            <span class="alert-meta">Zone C • Yesterday</span>
+            <span class="alert-msg">Telemetry stream initialized successfully.</span>
+            <span class="alert-meta">System • Live</span>
           </div>
         </div>
       </div>
-
-      <button class="view-all-btn">View All Alerts</button>
     </div>
   </div>
 </div>
 
 <div class="floating-chat-container">
-  <div class="chat-bubble-promo" id="chatPromo">
-    Hi! I'm your <b>Farm AI Assistant.</b> Click me to ask anything.
-  </div>
-
+  <div class="chat-bubble-promo" id="chatPromo">Hi! I'm your <b>Farm AI Assistant.</b> Ask me about live metrics!</div>
   <div class="chat-window" id="chatWindow">
     <div class="chat-header">
       <span>Farm AI Assistant</span>
       <span style="cursor:pointer;" onclick="toggleChat()">✕</span>
     </div>
     <div class="chat-messages" id="msgs">
-      <div class="message-node ai">Hello! How can I assist you with your Smart Farm metrics today?</div>
+      <div class="message-node ai">Hello! I am connected to the live stream. Ask me anything about the data components!</div>
     </div>
     <div class="chat-input-row">
       <input id="input" placeholder="Ask AI..." onkeydown="if(event.key === 'Enter') send()" />
       <button onclick="send()">Send</button>
     </div>
   </div>
-
   <div class="chat-toggle-trigger" onclick="toggleChat()">
     <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 2A10 10 0 0 0 2 12c0 2.34.8 4.5 2.14 6.22L3 21l2.89-.97A9.97 9.97 0 0 0 12 22a10 10 0 0 0 10-10A10 10 0 0 0 12 2zm0 18c-1.73 0-3.34-.54-4.68-1.46l-.34-.23-1.73.58.58-1.68-.25-.37A7.93 7.93 0 0 1 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/></svg>
   </div>
 </div>
 
 <script>
-// CHARTJS INITIALIZATION (Matching Image parameters)
+// Keep track of current system state
+let currentMetrics = {
+  temp: 23.4,
+  humidity: 56.7,
+  soil: 42.3,
+  light: 68.9
+};
+
+// Historical tracking arrays to calculate running averages
+let historyLogs = { temp: [23], humidity: [56], soil: [42], light: [68] };
+
+// Setup Live Chart Tracker
 const ctx = document.getElementById('chart').getContext('2d');
-new Chart(ctx, {
+const liveChart = new Chart(ctx, {
   type: 'line',
   data: {
-    labels: ['May 1', '', '', '', 'May 6', '', '', '', 'May 11', '', '', '', 'May 16', '', '', '', 'May 21', '', '', '', 'May 26', '', '', 'May 31'],
+    labels: ['Init'],
     datasets: [{
-      data: [23, 21, 18, 19, 20, 21, 23, 20, 19, 21, 20, 18, 19, 17, 18, 17, 20, 23, 21, 22, 21, 20, 22, 21],
+      label: 'Live Temperature',
+      data: [23.4],
       borderColor: '#4caf50',
       backgroundColor: 'rgba(76, 175, 80, 0.06)',
       fill: true,
-      tension: 0.4,
-      pointRadius: 3,
-      pointBackgroundColor: '#4caf50',
+      tension: 0.3,
       borderWidth: 2
     }]
   },
@@ -707,31 +649,107 @@ new Chart(ctx, {
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
-      y: {
-        min: 0,
-        max: 40,
-        ticks: { stepSize: 10, callback: value => value + '°C' },
-        grid: { color: '#f0f0f0' }
-      },
+      y: { min: 10, max: 40, ticks: { callback: v => v + '°C' } },
       x: { grid: { display: false } }
     }
   }
 });
 
-// CHAT UI TOGGLE INTERACTION
-function toggleChat() {
-  const windowEl = document.getElementById('chatWindow');
-  const promoEl = document.getElementById('chatPromo');
-  if(windowEl.style.display === 'flex') {
-    windowEl.style.display = 'none';
-    promoEl.style.display = 'block';
+// Real-Time Simulation Engine 
+function startLiveTelemetry() {
+  setInterval(() => {
+    // Generate organic fluctuations
+    currentMetrics.temp = +(currentMetrics.temp + (Math.random() - 0.5) * 0.8).toFixed(1);
+    currentMetrics.humidity = +(currentMetrics.humidity + (Math.random() - 0.5) * 1.2).toFixed(1);
+    currentMetrics.soil = +(currentMetrics.soil + (Math.random() - 0.5) * 0.6).toFixed(1);
+    currentMetrics.light = +(currentMetrics.light + (Math.random() - 0.5) * 2.0).toFixed(1);
+
+    // Limit ranges safely
+    if(currentMetrics.temp < 15 || currentMetrics.temp > 35) currentMetrics.temp = 24.2;
+    if(currentMetrics.humidity < 35 || currentMetrics.humidity > 80) currentMetrics.humidity = 55.0;
+    if(currentMetrics.soil < 20 || currentMetrics.soil > 70) currentMetrics.soil = 45.0;
+    if(currentMetrics.light < 30 || currentMetrics.light > 95) currentMetrics.light = 65.0;
+
+    // Push into telemetry history logs
+    Object.keys(currentMetrics).forEach(key => {
+      historyLogs[key].push(currentMetrics[key]);
+      if(historyLogs[key].length > 15) historyLogs[key].shift(); // Keep moving viewport window
+    });
+
+    // Update DOM Element Values dynamically
+    document.getElementById('val-temp').innerText = currentMetrics.temp;
+    document.getElementById('nav-temp').innerText = currentMetrics.temp;
+    document.getElementById('val-humidity').innerText = currentMetrics.humidity;
+    document.getElementById('val-soil').innerText = currentMetrics.soil;
+    document.getElementById('val-light').innerText = currentMetrics.light;
+
+    // Reposition Graphic Bar indicators
+    document.getElementById('progress-temp').style.width = Math.floor(((currentMetrics.temp - 10)/30)*100) + "%";
+    document.getElementById('progress-humidity').style.width = Math.floor(currentMetrics.humidity) + "%";
+    document.getElementById('progress-soil').style.width = Math.floor(currentMetrics.soil) + "%";
+    document.getElementById('progress-light').style.width = Math.floor(currentMetrics.light) + "%";
+
+    document.getElementById('lbl-temp').innerText = Math.floor(((currentMetrics.temp - 10)/30)*100) + "%";
+    document.getElementById('lbl-humidity').innerText = Math.floor(currentMetrics.humidity) + "%";
+    document.getElementById('lbl-soil').innerText = Math.floor(currentMetrics.soil) + "%";
+    document.getElementById('lbl-light').innerText = Math.floor(currentMetrics.light) + "%";
+
+    // Re-evaluate moving averages
+    document.getElementById('avg-temp').innerText = (historyLogs.temp.reduce((a,b)=>a+b,0)/historyLogs.temp.length).toFixed(1) + "°C";
+    document.getElementById('avg-humidity').innerText = (historyLogs.humidity.reduce((a,b)=>a+b,0)/historyLogs.humidity.length).toFixed(1) + "%";
+    document.getElementById('avg-soil').innerText = (historyLogs.soil.reduce((a,b)=>a+b,0)/historyLogs.soil.length).toFixed(1) + "%";
+    document.getElementById('avg-light').innerText = (historyLogs.light.reduce((a,b)=>a+b,0)/historyLogs.light.length).toFixed(1) + "%";
+
+    // Append Node to Chart viewport dynamically
+    let currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+    liveChart.data.labels.push(currentTimeStr);
+    liveChart.data.datasets[0].data.push(currentMetrics.temp);
+
+    if(liveChart.data.labels.length > 10) {
+      liveChart.data.labels.shift();
+      liveChart.data.datasets[0].data.shift();
+    }
+    liveChart.update();
+
+    // Contextual Health Checker & Alert Issuer
+    verifySystemThresholds();
+  }, 3000); // Polls and transitions seamlessly every 3 seconds
+}
+
+function verifySystemThresholds() {
+  const alertBox = document.getElementById('alert-box');
+  const bannerTitle = document.getElementById('system-status-title');
+  const bannerDesc = document.getElementById('system-status-desc');
+  
+  if(currentMetrics.soil < 32) {
+    bannerTitle.innerText = "Attention Required";
+    bannerTitle.style.color = "#d32f2f";
+    bannerDesc.innerText = "Critical drop detected inside Zone A soil saturation matrix.";
+    
+    if(!document.getElementById('soil-alert-node')) {
+      let alertItem = document.createElement('div');
+      alertItem.className = "alert-item warning";
+      alertItem.id = "soil-alert-node";
+      alertItem.innerHTML = `<div class="alert-icon">⚠️</div><div class="alert-details"><span class="alert-msg">Soil Moisture low in Zone A</span><span class="alert-meta">Automated Scan • Just Now</span></div>`;
+      alertBox.insertBefore(alertItem, alertBox.firstChild);
+    }
   } else {
-    windowEl.style.display = 'flex';
-    promoEl.style.display = 'none';
+    bannerTitle.innerText = "System Healthy";
+    bannerTitle.style.color = "#1b5e20";
+    bannerDesc.innerText = "All systems are operating within normal parameters.";
+    let existingNode = document.getElementById('soil-alert-node');
+    if(existingNode) alertBox.removeChild(existingNode);
   }
 }
 
-// MESSAGE ACTIONS
+// Chat UI Controls
+function toggleChat() {
+  const w = document.getElementById('chatWindow');
+  const p = document.getElementById('chatPromo');
+  if(w.style.display === 'flex') { w.style.display = 'none'; p.style.display = 'block'; }
+  else { w.style.display = 'flex'; p.style.display = 'none'; }
+}
+
 function addMsg(text, type) {
   const msgs = document.getElementById("msgs");
   let div = document.createElement("div");
@@ -752,15 +770,19 @@ async function send() {
   const msgs = document.getElementById("msgs");
   let loading = document.createElement("div");
   loading.className = "message-node ai";
-  loading.innerText = "Thinking...";
+  loading.innerText = "Evaluating System Matrix...";
   msgs.appendChild(loading);
   msgs.scrollTop = msgs.scrollHeight;
 
   try {
+    // Sending both user input AND active telemetry context down to Gemini
     let res = await fetch("/api/gemini", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ 
+        message: message,
+        liveData: currentMetrics // Injects real context into the API call
+      })
     });
 
     let data = await res.json();
@@ -769,13 +791,16 @@ async function send() {
     if(data.reply) {
       addMsg(data.reply, "ai");
     } else {
-      addMsg("⚠️ Error: " + (data.error || "Unknown response structure"), "ai");
+      addMsg("⚠️ Stream analysis faulted.", "ai");
     }
   } catch(err) {
     if(msgs.contains(loading)) msgs.removeChild(loading);
-    addMsg("❌ Connection failed.", "ai");
+    addMsg("❌ Link dropped.", "ai");
   }
 }
+
+// Fire up automated telemetry pipelines on viewport load
+window.onload = startLiveTelemetry;
 </script>
 
 </body>
