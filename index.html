@@ -1,98 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SMART FARM</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Farm</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root{
-  --bg:#0b1220;
-  --card:#111827;
   --green:#22c55e;
-  --text:#e5e7eb;
+  --bg-dark:#0f172a;
+  --card-dark:#1e293b;
+  --text-dark:#e2e8f0;
 }
-
-*{box-sizing:border-box;font-family:Segoe UI,sans-serif}
 
 body{
   margin:0;
-  background:var(--bg);
-  color:var(--text);
+  font-family:Segoe UI, sans-serif;
+  background:var(--bg-dark);
+  color:var(--text-dark);
 }
 
-/* HEADER */
-header{
-  padding:16px;
+/* NAV */
+.nav{
   display:flex;
   justify-content:space-between;
+  padding:15px 20px;
   background:#020617;
 }
 
-/* DASHBOARD */
-.container{
+.menu span{
+  margin:0 8px;
+  padding:6px 10px;
+  cursor:pointer;
+}
+
+.active{
+  background:var(--green);
+  border-radius:6px;
+}
+
+/* STATUS */
+.status{
+  margin:15px;
+  padding:12px;
+  background:var(--card-dark);
+  border-radius:10px;
+  text-align:center;
+}
+
+/* CARDS */
+.grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
   gap:15px;
-  padding:20px;
+  padding:15px;
 }
 
 .card{
-  background:var(--card);
+  background:var(--card-dark);
   padding:15px;
   border-radius:12px;
 }
 
-.value{
-  font-size:24px;
-  margin-top:10px;
+.bar{
+  height:6px;
+  background:#334155;
+  border-radius:5px;
 }
 
-/* FLOATING AI */
-.ai-btn{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  width:60px;
-  height:60px;
-  border-radius:50%;
+.fill{
+  height:6px;
   background:var(--green);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  font-size:24px;
+}
+
+/* MAIN */
+.main{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:15px;
+  padding:15px;
+}
+
+@media(min-width:768px){
+  .main{
+    grid-template-columns:2fr 1fr;
+  }
+}
+
+.panel{
+  background:var(--card-dark);
+  padding:15px;
+  border-radius:12px;
 }
 
 /* CHAT */
-.chat-box{
+.chat{
   position:fixed;
-  bottom:90px;
-  right:20px;
-  width:300px;
-  height:400px;
+  bottom:0;
+  right:0;
+  width:100%;
+  max-width:350px;
   background:#020617;
-  border-radius:12px;
-  display:none;
+  border-top-left-radius:12px;
+  display:flex;
   flex-direction:column;
 }
 
-.chat-box.show{display:flex;}
-
 .messages{
-  flex:1;
-  padding:10px;
+  height:250px;
   overflow:auto;
+  padding:10px;
 }
 
 .msg{
-  margin:5px 0;
+  margin:6px 0;
   padding:8px;
   border-radius:8px;
 }
 
-.user{background:#22c55e;color:black}
-.ai{background:#1f2937}
+.user{background:var(--green);color:black}
+.ai{background:#334155}
 
 .input{
   display:flex;
@@ -102,60 +131,71 @@ input{
   flex:1;
   padding:10px;
   border:none;
-  background:#111827;
+  background:#1e293b;
   color:white;
 }
 
 button{
-  padding:10px;
   background:var(--green);
   border:none;
+  padding:10px;
+  cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <div>🌿 SMART FARM</div>
-</header>
-
-<div class="container">
-  <div class="card"><h3>Temperature</h3><div id="temp" class="value"></div></div>
-  <div class="card"><h3>Humidity</h3><div id="hum" class="value"></div></div>
+<div class="nav">
+  <b>🌿 SMART FARM</b>
+  <div class="menu">
+    <span class="active">Dashboard</span>
+    <span>Zones</span>
+    <span>Alerts</span>
+  </div>
 </div>
 
-<!-- AI BUTTON -->
-<div class="ai-btn" onclick="toggleChat()">🤖</div>
+<div class="status">✅ System Healthy</div>
+
+<div class="grid">
+  <div class="card"><h3>Temp</h3><h2>23°C</h2><div class="bar"><div class="fill" style="width:50%"></div></div></div>
+  <div class="card"><h3>Humidity</h3><h2>56%</h2><div class="bar"><div class="fill" style="width:56%"></div></div></div>
+  <div class="card"><h3>Soil</h3><h2>42%</h2><div class="bar"><div class="fill" style="width:42%"></div></div></div>
+</div>
+
+<div class="main">
+  <div class="panel">
+    <h3>Trends</h3>
+    <canvas id="chart"></canvas>
+  </div>
+
+  <div class="panel">
+    <h3>Alerts</h3>
+    <p>⚠ Low moisture</p>
+    <p>✅ Irrigation done</p>
+  </div>
+</div>
 
 <!-- CHAT -->
-<div class="chat-box" id="chatBox">
+<div class="chat">
   <div class="messages" id="msgs"></div>
   <div class="input">
-    <input id="input" placeholder="Ask farm AI..." />
+    <input id="input" placeholder="Ask AI..." />
     <button onclick="send()">Send</button>
   </div>
 </div>
 
 <script>
-let data = {temp:25,hum:60};
+// chart
+new Chart(document.getElementById("chart"),{
+  type:"line",
+  data:{
+    labels:["1","2","3","4","5"],
+    datasets:[{data:[22,24,21,23,25]}]
+  }
+});
 
-function update(){
-  data.temp += (Math.random()-0.5)*2;
-  data.hum += (Math.random()-0.5)*2;
-
-  temp.innerText = data.temp.toFixed(1)+"°C";
-  hum.innerText = data.hum.toFixed(1)+"%";
-}
-
-setInterval(update,2000);
-update();
-
-/* CHAT UI */
-function toggleChat(){
-  chatBox.classList.toggle("show");
-}
-
+// chat
 function addMsg(text,type){
   let div=document.createElement("div");
   div.className="msg "+type;
@@ -164,40 +204,38 @@ function addMsg(text,type){
   msgs.scrollTop=msgs.scrollHeight;
 }
 
-/* SEND MESSAGE */
 async function send(){
-  let inputEl = document.getElementById("input");
-  let message = inputEl.value.trim();
+  let inputEl=document.getElementById("input");
+  let message=inputEl.value.trim();
   if(!message) return;
 
   addMsg(message,"user");
   inputEl.value="";
 
-  let loading = document.createElement("div");
+  let loading=document.createElement("div");
   loading.className="msg ai";
   loading.innerText="Thinking...";
   msgs.appendChild(loading);
 
   try{
-    let res = await fetch("/api/gemini",{
+    let res=await fetch("/api/gemini",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({message})
     });
 
-    let data = await res.json();
-
+    let data=await res.json();
     msgs.removeChild(loading);
 
     if(data.reply){
       addMsg(data.reply,"ai");
     }else{
-      addMsg("⚠️ Error: "+(data.error || "Unknown error"),"ai");
+      addMsg("⚠ Error: "+(data.error||"Unknown"),"ai");
     }
 
   }catch(err){
     msgs.removeChild(loading);
-    addMsg("❌ Network error. Try again.","ai");
+    addMsg("❌ Network error","ai");
   }
 }
 </script>
