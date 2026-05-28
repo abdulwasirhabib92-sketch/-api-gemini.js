@@ -21,10 +21,16 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Check Gemini API key
-    if (!process.env.GEMINI_API_KEY) {
+    // --- API KEY CONFIGURATION ---
+    // PLACEHOLDER OPTION (As requested):
+    const API_KEY = "PASTE_GROQ_API_KEY_HERE";
+
+    // PRODUCTION BACKUP: Prioritize server environment variables for total safety on GitHub/Vercel
+    const FINAL_API_KEY = process.env.GROQ_API_KEY || API_KEY;
+
+    if (!FINAL_API_KEY || FINAL_API_KEY === "PASTE_GROQ_API_KEY_HERE") {
       return res.status(500).json({
-        error: "Missing GEMINI_API_KEY"
+        error: "Missing GROQ_API_KEY. Please provide it via Vercel Environment Variables or the API_KEY constant."
       });
     }
 
@@ -51,45 +57,43 @@ User Question:
 ${message}
 `;
 
-    // Send request to Gemini
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: prompt
-                }
-              ]
-            }
-          ]
-        })
-      }
-    );
+    // --- REMOVED GEMINI ENDPOINT LOGIC ---
+    // URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
+    
+    // --- ADDED GROQ ENDPOINT LOGIC ---
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${FINAL_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
+      })
+    });
 
     // Parse response
     const data = await response.json();
 
     // Debug logs
-    console.log("Gemini Response:", JSON.stringify(data, null, 2));
+    console.log("Groq Response:", JSON.stringify(data, null, 2));
 
-    // Gemini API failure
+    // Groq API failure
     if (!response.ok) {
       return res.status(500).json({
-        error: "Gemini API Error",
+        error: "Groq API Error",
         details: data
       });
     }
 
-    // Extract AI text
-    const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    // Extract AI text from standard OpenAI/Groq Chat format
+    const reply = data?.choices?.[0]?.message?.content;
 
     // Empty AI response
     if (!reply) {
