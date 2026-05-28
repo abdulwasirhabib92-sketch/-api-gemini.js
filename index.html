@@ -338,7 +338,8 @@ function addMessage(text,type){
     messages.scrollHeight;
 }
 
-// SEND TO GEMINI
+// REMOVED GEMINI: async function send() targeted /api/gemini
+// ADDED GROQ: Target route pointing directly to the updated /api/groq system backend
 async function send(){
 
   const input =
@@ -358,7 +359,7 @@ async function send(){
   try{
 
     const response =
-      await fetch("/api/gemini",{
+      await fetch("/api/groq",{
 
       method:"POST",
 
