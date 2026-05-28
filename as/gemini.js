@@ -22,15 +22,13 @@ module.exports = async (req, res) => {
     }
 
     // --- API KEY CONFIGURATION ---
-    // PLACEHOLDER OPTION (As requested):
+    // You can paste your API key below or set it as a Vercel environment variable named GROQ_API_KEY
     const API_KEY = "PASTE_GROQ_API_KEY_HERE";
-
-    // PRODUCTION BACKUP: Prioritize server environment variables for total safety on GitHub/Vercel
     const FINAL_API_KEY = process.env.GROQ_API_KEY || API_KEY;
 
     if (!FINAL_API_KEY || FINAL_API_KEY === "PASTE_GROQ_API_KEY_HERE") {
       return res.status(500).json({
-        error: "Missing GROQ_API_KEY. Please provide it via Vercel Environment Variables or the API_KEY constant."
+        error: "Missing GROQ_API_KEY. Please provide your Groq API key inside /api/gemini.js or via your Vercel Dashboard."
       });
     }
 
@@ -57,10 +55,8 @@ User Question:
 ${message}
 `;
 
-    // --- REMOVED GEMINI ENDPOINT LOGIC ---
-    // URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
-    
-    // --- ADDED GROQ ENDPOINT LOGIC ---
+    // --- REMOVED OLD GEMINI API LOGIC ---
+    // --- ADDED REPLACEMENT GROQ API LOGIC ---
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -78,13 +74,13 @@ ${message}
       })
     });
 
-    // Parse response
+    // Parse incoming response data
     const data = await response.json();
 
-    // Debug logs
-    console.log("Groq Response:", JSON.stringify(data, null, 2));
+    // Debug logs in Vercel console
+    console.log("Groq Response Status:", response.status);
 
-    // Groq API failure
+    // Groq API failure catch
     if (!response.ok) {
       return res.status(500).json({
         error: "Groq API Error",
@@ -92,10 +88,10 @@ ${message}
       });
     }
 
-    // Extract AI text from standard OpenAI/Groq Chat format
+    // Extract AI text response cleanly
     const reply = data?.choices?.[0]?.message?.content;
 
-    // Empty AI response
+    // Empty AI response handling
     if (!reply) {
       return res.status(500).json({
         error: "No AI reply returned",
@@ -103,7 +99,7 @@ ${message}
       });
     }
 
-    // Send successful response
+    // Send valid JSON payload back to frontend
     return res.status(200).json({
       reply
     });
