@@ -338,8 +338,7 @@ function addMessage(text,type){
     messages.scrollHeight;
 }
 
-// REMOVED GEMINI: async function send() targeted /api/gemini
-// ADDED GROQ: Target route pointing directly to the updated /api/groq system backend
+// FETCH REQUEST TARGETS THE VERCEL API FILE AT /api/gemini
 async function send(){
 
   const input =
@@ -359,7 +358,7 @@ async function send(){
   try{
 
     const response =
-      await fetch("/api/groq",{
+      await fetch("/api/gemini",{
 
       method:"POST",
 
