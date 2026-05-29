@@ -2,7 +2,6 @@ const fetch = require("node-fetch");
 
 module.exports = async (req, res) => {
 
-  // Allow only POST requests
   if (req.method !== "POST") {
     return res.status(405).json({
       error: "Only POST requests allowed"
@@ -10,32 +9,26 @@ module.exports = async (req, res) => {
   }
 
   try {
-
-    // Read incoming data
     const { message, liveData } = req.body || {};
 
-    // Validate message
     if (!message || message.trim() === "") {
       return res.status(400).json({
         error: "Message is required"
       });
     }
 
-    // --- API KEY CONFIGURATION ---
-    // You can paste your API key below or set it as a Vercel environment variable named GROQ_API_KEY
+    // --- PASTE YOUR ACTUAL GROQ API KEY HERE ---
     const API_KEY = "PASTE_GROQ_API_KEY_HERE";
     const FINAL_API_KEY = process.env.GROQ_API_KEY || API_KEY;
 
     if (!FINAL_API_KEY || FINAL_API_KEY === "PASTE_GROQ_API_KEY_HERE") {
       return res.status(500).json({
-        error: "Missing GROQ_API_KEY. Please provide your Groq API key inside /api/gemini.js or via your Vercel Dashboard."
+        error: "Missing GROQ_API_KEY setup inside the code or environment variable configuration."
       });
     }
 
-    // Build intelligent prompt
     const prompt = `
 You are an elite Agronomy AI assistant specializing in West African agriculture.
-
 You are connected to a real-time smart farming dashboard.
 
 Current live telemetry:
@@ -55,8 +48,7 @@ User Question:
 ${message}
 `;
 
-    // --- REMOVED OLD GEMINI API LOGIC ---
-    // --- ADDED REPLACEMENT GROQ API LOGIC ---
+    // Fetching the Groq API Chat Completion Endpoint directly
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -74,13 +66,8 @@ ${message}
       })
     });
 
-    // Parse incoming response data
     const data = await response.json();
 
-    // Debug logs in Vercel console
-    console.log("Groq Response Status:", response.status);
-
-    // Groq API failure catch
     if (!response.ok) {
       return res.status(500).json({
         error: "Groq API Error",
@@ -88,10 +75,8 @@ ${message}
       });
     }
 
-    // Extract AI text response cleanly
     const reply = data?.choices?.[0]?.message?.content;
 
-    // Empty AI response handling
     if (!reply) {
       return res.status(500).json({
         error: "No AI reply returned",
@@ -99,15 +84,12 @@ ${message}
       });
     }
 
-    // Send valid JSON payload back to frontend
     return res.status(200).json({
       reply
     });
 
   } catch (err) {
-
     console.error("SERVER ERROR:", err);
-
     return res.status(500).json({
       error: "Internal Server Error",
       details: err.message
