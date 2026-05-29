@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { message, liveData } = req.body || {};
+    const { message, liveData, image } = req.body || {};
 
     if (!message || message.trim() === "") {
       return res.status(400).json({
@@ -27,28 +27,49 @@ module.exports = async (req, res) => {
       });
     }
 
-    // UPDATED PROMPT: Instructs the AI to act as a general farming/agronomy expert, not limiting it to just parameter monitoring.
-    const prompt = `
-You are an elite, comprehensive Agronomy AI assistant specializing in general farming, crop science, pest control, livestock, and West African agriculture. 
+    // Base core context system configurations
+    const systemInstruction = `You are an elite, comprehensive Agronomy AI assistant specializing in general farming, crop science, visual crop leaf disease diagnostics, pest control, and West African agriculture. 
 You are connected to a real-time smart farming dashboard.
 
-Here is the current dashboard live telemetry for context (use this when relevant, but don't limit your knowledge to it):
-- Temperature: ${liveData?.temp}°C
-- Humidity: ${liveData?.humidity}%
-- Soil Moisture: ${liveData?.soil}%
-- Light Intensity: ${liveData?.light}%
+Here is the current dashboard live telemetry context for environmental matching:
+- Temperature: ${liveData?.temp || 24}°C
+- Humidity: ${liveData?.humidity || 55}%
+- Soil Moisture: ${liveData?.soil || 42}%
+- Light Intensity: ${liveData?.light || 67}%
 
 Rules:
-1. Answer ANY and ALL general farming questions the user asks (e.g., crop rotation, fertilizer application, fighting plant pests, irrigation planning, livestock care, soil testing, or weather guidance).
-2. Do NOT restrict your answers to the dashboard metrics. If a user asks about how to plant maize, cure a tomato disease, or manage cassava, provide complete professional agricultural guidance.
-3. If the user asks specifically about their current metrics, use the telemetry listed above to diagnose their farm situation.
-4. Keep answers clear, practical, concise, and highly actionable for farmers.
+1. If an image is provided, thoroughly scan and visually analyze it for crop damage, fungal patterns, pests, nutritional deficiencies, or wilting. Provide a clear diagnosis, risk assessment level, and biological or chemical mitigation strategies.
+2. Answer any comprehensive or general farming questions alternative text asks (crop rotation, planting cycles, soil test parsing, etc).
+3. Do not restrict text generation purely to parameter scopes unless explicitly prompted.
+4. Keep all replies actionable, crisp, and direct for easy operational field reading.`;
 
-User Question:
-${message}
-`;
+    // Initialize content structure array compliant with Groq vision/text format requirements
+    let contentPayload = [];
 
-    // Fetching Groq API
+    // Switch model dynamically if visual diagnostic image array objects are detected inside wire payloads
+    let selectedModel = "llama-3.3-70b-versatile"; // Default high capacity model
+
+    if (image) {
+      // Use Groq's high-performance multi-modal vision flagship model
+      selectedModel = "llama-3.2-90b-vision-preview";
+
+      // Append image reference parameters parsed clean of default headers format if passed intact
+      // Extract structure: "data:image/jpeg;base64,..."
+      contentPayload.push({
+        type: "image_url",
+        image_url: {
+          url: image
+        }
+      });
+    }
+
+    // Append primary descriptive user textual prompt strings inside array contents
+    contentPayload.push({
+      type: "text",
+      text: `${systemInstruction}\n\nUser Input/Question: ${message}`
+    });
+
+    // Make post call structure targeting the uniform completions endpoint
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -56,13 +77,14 @@ ${message}
         "Authorization": `Bearer ${FINAL_API_KEY}`
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: selectedModel,
         messages: [
           {
             role: "user",
-            content: prompt
+            content: contentPayload
           }
-        ]
+        ],
+        temperature: 0.2
       })
     });
 
